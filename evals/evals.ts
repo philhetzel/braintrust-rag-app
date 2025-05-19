@@ -9,7 +9,7 @@ const openai = new OpenAI({
 
 // Create a project
 const project = await projects.create({
-  name: "Phil's Scratch Area"
+  name: "PhilScratchArea"
 });
 
 const noHallucination = LLMClassifierFromTemplate({

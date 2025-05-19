@@ -2,7 +2,7 @@ import { Pinecone } from "@pinecone-database/pinecone";
 import { VoyageAIClient } from "voyageai";
 import { tool } from "ai";
 import { z } from "zod";
-import { wrapTraced, currentSpan } from "braintrust";
+import { wrapTraced, currentSpan} from "braintrust";
 
 const pinecone = new Pinecone({apiKey: process.env.PINECONE_API_KEY!});
 const index = pinecone.Index("braintrust-rag-bot");
@@ -33,7 +33,7 @@ const getDocs = wrapTraced(async function getDocs(query: string) {
         }
     });
     return context;
-})
+}, {type: "tool"})
 
 export const getContext = tool({
     description: "Get context from the vector database",
@@ -45,3 +45,4 @@ export const getContext = tool({
         return context;
     },
 }); 
+

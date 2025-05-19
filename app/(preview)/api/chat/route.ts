@@ -1,10 +1,12 @@
 import { openai } from "@ai-sdk/openai";
-import { streamText, ToolInvocation } from "ai";
+import { streamText, ToolInvocation, CoreMessage, ToolResultPart } from "ai";
 import { getWeather, getFahrenheit } from "@/components/tools";
 import { getContext } from "@/components/retrieval";
 import { cookies } from 'next/headers'
 // Uncomment below to use Braintrust's tracing features
 import { initLogger, wrapAISDKModel, traced, currentSpan } from "braintrust";
+
+type Message = CoreMessage;
 
 export const logger = initLogger({
   apiKey: process.env.BRAINTRUST_API_KEY,
@@ -17,12 +19,6 @@ const model = wrapAISDKModel(
   openai("gpt-4o")
 // Uncomment below
 );
-
-interface Message {
-  role: "user" | "assistant";
-  content: string;
-  toolInvocations?: ToolInvocation[];
-}
 
 export async function POST(request: Request) {
   const cookieStore = cookies();
@@ -54,12 +50,34 @@ export async function POST(request: Request) {
         },
       // When streamText is finished, log the input and output of the stream for the "root" span. Uncomment below
       onFinish: (result) => {
+        // Debug logging
+        console.log("Raw result:", JSON.stringify(result, null, 2));
+        console.log("Response messages:", JSON.stringify(result.response.messages, null, 2));
+        
+        // Filter messages for getContext tool responses
+        const contextMessages = result.response.messages
+          .filter(msg => msg.role === 'tool' && Array.isArray(msg.content))
+          .map(msg => {
+            console.log("Found tool message:", JSON.stringify(msg, null, 2));
+            if (Array.isArray(msg.content)) {
+              const toolResult = msg.content.find(
+                (content): content is ToolResultPart =>
+                  content.type === 'tool-result' && content.toolName === 'getContext'
+              );
+              console.log("Found tool result:", JSON.stringify(toolResult, null, 2));
+              return typeof toolResult?.result === 'string' ? toolResult.result : undefined;
+            }
+            return undefined;
+          })
+          .filter((result): result is string => result !== undefined);
+
         currentSpan().log({
           input: messages,
           output: result.text,
           metadata: {
             user: "phetzel1",
             session: cookieStore.get("session_id_PhilCookie")?.value,
+            context: contextMessages
           },
         });
       },
