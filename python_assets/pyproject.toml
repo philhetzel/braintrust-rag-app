@@ -1,0 +1,13 @@
+[project]
+name = "python-assets"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "autoevals>=0.0.129",
+    "braintrust>=0.1.0",
+    "openai>=1.79.0",
+    "pinecone[grpc]>=6.0.2",
+    "voyageai>=0.3.2",
+]

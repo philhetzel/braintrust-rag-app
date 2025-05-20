@@ -19,9 +19,9 @@ export default function Home() {
 
   const suggestedActions = [
     {
-      title: "What is the weather",
-      label: "in Philadelphia?",
-      action: "What is the weather in Philadelphia?",
+      title: "How do I perform",
+      label: "logging and tracing?",
+      action: "How do I perform logging and tracing?",
     },
   ];
 
@@ -41,9 +41,8 @@ export default function Home() {
                   <MasonryIcon />
                 </p>
                 <p>
-                  Ask this chatbot about the weather in a city. The LLM will derive that latitude and location for 
-                  that city, find the weather using the latitude and longitude, and then use another tool call to convert
-                  the temperature from celsius to fahrenheit.
+                  Ask this chatbot about anything in the Braintrust documentation. It will search a 
+                  vector database with Braintrust documentation loaded, summarize, and give you an answer.
                 </p>
                 <p>
                   {" "}
@@ -53,7 +52,7 @@ export default function Home() {
                     href="https://www.braintrust.dev/docs/guides/traces/integrations#vercel-ai-sdk-1"
                     target="_blank"
                   >
-                    Braintrust tracing{" "}
+                    Braintrust{" "}
                   </Link>
                   in our documentation.
                 </p>

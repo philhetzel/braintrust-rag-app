@@ -17,7 +17,7 @@ const embedQuery = wrapTraced(async function embedQuery(query: string) {
     return docs.data?.[0]?.embedding ?? []
 });
 
-const getDocs = wrapTraced(async function getDocs(query: string) {
+export const getDocs = wrapTraced(async function getDocs(query: string) {
     const embedding = await embedQuery(query);
     
     const results = await index.query({
