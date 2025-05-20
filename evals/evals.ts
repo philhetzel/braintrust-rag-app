@@ -1,10 +1,11 @@
-import { LLMClassifierFromTemplate,Faithfulness } from "autoevals";
+import { Faithfulness, ContextRelevancy, ContextPrecision } from "autoevals";
 import { Eval, projects, initDataset } from "braintrust";
 import { OpenAI } from "openai";
 import { Pinecone } from "@pinecone-database/pinecone";
 import { VoyageAIClient } from "voyageai";
 import { wrapTraced, currentSpan } from "braintrust";
-
+import { z } from "zod";
+import { get } from "http";
 // Setup Pinecone, VoyageAI, and OpenAI clients
 const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY! });
 const index = pinecone.Index("braintrust-rag-bot");
@@ -79,29 +80,6 @@ async function getOutput(query: Input[]): Promise<Output> {
   return output
 }
 
-// async function getFaithfulness(args: { input: string }) {
-//   const output_obj = JSON.parse(args.input);
-//   const output = output_obj.output;
-//   const context = output_obj.context;
-//   const classifier = LLMClassifierFromTemplate({
-//     name: "NoHallucination",
-//     model: "gpt-4o-mini",
-//     promptTemplate: `You are an LLM editor that ensures that no false information appears in a response. Given a response
-//     check the response against the context. If there is information in the response that was not in the context, this is a 
-//     hallucination. If there is no hallucination, return "yes". If there is a hallucination, return "no".
-    
-//     Response: ${output}
-    
-//     Context: ${context}
-//     `,
-//     choiceScores: {
-//       "yes": 1,
-//       "no": 0,
-//     },
-//   });
-//   return classifier
-// }
-
 interface Output {
   output: string;
   context: string;
@@ -118,8 +96,30 @@ const getFaithfulness = (args: {
   });
 };
 
+const getContextRelevancy = (args: {
+  output: Output
+}) => {
+  return ContextRelevancy({
+    output: args.output.output,
+    context: args.output.context,
+    input: args.output.input
+  });
+};
+
+const getContextPrecision = (args: {
+  output: Output,
+}) => {
+  return ContextPrecision({
+    output: args.output.output,
+    context: args.output.context,
+    input: args.output.input,
+    expected: "{{expected}}",
+  });
+};
+
+
 Eval("PhilScratchArea", {
   task: getOutput,
   data: initDataset({ project: "PhilScratchArea", dataset: "RAGDataset" }), // ignored
-  scores: [getFaithfulness],
+  scores: [getFaithfulness, getContextRelevancy, getContextPrecision],
 });
