@@ -1,63 +1,58 @@
 import { Pinecone } from "@pinecone-database/pinecone";
 import { VoyageAIClient } from "voyageai";
-import { tool } from "ai";
 import { z } from "zod";
 import { currentSpan, projects} from "braintrust";
 
+// const getDocs = async function getDocs(query: string) {
+//     const pinecone = new Pinecone({apiKey: process.env.PINECONE_API_KEY!});
+//     const index = pinecone.Index("braintrust-rag-bot");
 
-
-
-
-const getDocs = async function getDocs(query: string) {
-    const pinecone = new Pinecone({apiKey: process.env.PINECONE_API_KEY!});
-    const index = pinecone.Index("braintrust-rag-bot");
-
-    const voyage = new VoyageAIClient({
-        apiKey: process.env.VOYAGEAI_API_KEY,
-    });
-    const MODEL = "voyage-3"
-    const embedQuery = async function embedQuery(query: string) {
-        try {
-            const docs = await voyage.embed({input: query, model: MODEL})
-            return docs.data?.[0]?.embedding ?? []
-        } catch (error) {
-            console.error("Error embedding query:", error);
-            throw error;
-        }
-    }
-    try {
-        const embedding = await embedQuery(query);
+//     const voyage = new VoyageAIClient({
+//         apiKey: process.env.VOYAGEAI_API_KEY,
+//     });
+//     const MODEL = "voyage-3"
+//     const embedQuery = async function embedQuery(query: string) {
+//         try {
+//             const docs = await voyage.embed({input: query, model: MODEL})
+//             return docs.data?.[0]?.embedding ?? []
+//         } catch (error) {
+//             console.error("Error embedding query:", error);
+//             throw error;
+//         }
+//     }
+//     try {
+//         const embedding = await embedQuery(query);
         
-        const results = await index.query({
-            vector: embedding,
-            topK: 3,
-            includeMetadata: true,
-        });
+//         const results = await index.query({
+//             vector: embedding,
+//             topK: 3,
+//             includeMetadata: true,
+//         });
         
-        const context = results.matches?.map(match => match.metadata?.content).join("\n\n") ?? "";
-        currentSpan().log({
-            metadata: {
-                context: context,
-                query: query
-            }
-        });
-        return context;
-    } catch (error) {
-        console.error("Error getting docs:", error);
-        currentSpan().log({
-            metadata: {
-                error: error instanceof Error ? error.message : String(error),
-                query: query
-            }
-        });
-        throw error;
-    }
-}
+//         const context = results.matches?.map(match => match.metadata?.content).join("\n\n") ?? "";
+//         currentSpan().log({
+//             metadata: {
+//                 context: context,
+//                 query: query
+//             }
+//         });
+//         return context;
+//     } catch (error) {
+//         console.error("Error getting docs:", error);
+//         currentSpan().log({
+//             metadata: {
+//                 error: error instanceof Error ? error.message : String(error),
+//                 query: query
+//             }
+//         });
+//         throw error;
+//     }
+// }
 
 const project = projects.create({name: "PhilScratchArea"})
 
 // Register the tool with both names for backward compatibility
-project.tools.create({
+export const getDocs = project.tools.create({
     handler:  async ({ query }) => {
         const pinecone = new Pinecone({apiKey: process.env.PINECONE_API_KEY!});
         const index = pinecone.Index("braintrust-rag-bot");

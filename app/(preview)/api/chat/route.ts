@@ -4,7 +4,17 @@ import { getWeather, getFahrenheit } from "@/components/tools";
 import { getContext } from "@/components/retrieval";
 import { cookies } from 'next/headers'
 // Uncomment below to use Braintrust's tracing features
-import { initLogger, wrapAISDKModel, traced, currentSpan } from "braintrust";
+import { initLogger, wrapAISDKModel, traced, currentSpan, loadPrompt } from "braintrust";
+
+const prompt = await loadPrompt({
+  projectName: "PhilScratchArea",
+  slug: "embedded-prompt",
+  version: "900bedb1b334fbec"
+});
+
+const prompt_obj = prompt.build('')
+const prompt_message: string = prompt_obj.messages[0].content as string;
+const model_name: string = prompt_obj.model;
 
 type Message = CoreMessage;
 
@@ -16,7 +26,7 @@ export const logger = initLogger({
 // Initialize Braintrust as the logging backend. Uncomment below
 // Any time this model is called, the input and output will be logged to Braintrust. Uncomment below
 const model = wrapAISDKModel(
-  openai("gpt-4o")
+  openai(model_name)
 // Uncomment below
 );
 
@@ -31,10 +41,7 @@ export async function POST(request: Request) {
       const stream = await streamText({
         // Our wrapped OpenAI model
         model: model,
-        system: `\
-        - You are a helpful assistant that can answer questions about Braintrust using the Braintrust documentation.
-        - you also are an AI assistant who gives the weather. If the user gives you a location, give them the current weather in that location in Fahrenheit.
-      `,
+        system: prompt_message,
         messages: messages,
         // Important: maxSteps prevents infinite tool call loops but will stop your LLM's logic prematurely if set too low
         maxSteps: 5,
@@ -77,7 +84,8 @@ export async function POST(request: Request) {
           metadata: {
             user: "phetzel1",
             session: cookieStore.get("session_id_PhilCookie")?.value,
-            context: contextMessages
+            context: contextMessages,
+            model: model_name,
           },
         });
       },

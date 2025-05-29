@@ -1,11 +1,10 @@
-import { Faithfulness, ContextRelevancy, ContextPrecision } from "autoevals";
-import { Eval, projects, initDataset } from "braintrust";
+import { Faithfulness, ContextRelevancy, ContextRecall, ContextPrecision, Factuality } from "autoevals";
+import { Eval, initDataset } from "braintrust";
 import { OpenAI } from "openai";
 import { Pinecone } from "@pinecone-database/pinecone";
 import { VoyageAIClient } from "voyageai";
 import { wrapTraced, currentSpan } from "braintrust";
-import { z } from "zod";
-import { get } from "http";
+
 // Setup Pinecone, VoyageAI, and OpenAI clients
 const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY! });
 const index = pinecone.Index("braintrust-rag-bot");
@@ -117,9 +116,29 @@ const getContextPrecision = (args: {
   });
 };
 
+const getContextRecall = (args: {
+  output: Output,
+}) => {
+  return ContextRecall({
+    output: args.output.output,
+    context: args.output.context,
+    input: args.output.input,
+    expected: "{{expected}}",
+  });
+};
+
+const getFactuality = (args: {
+  output: Output,
+}) => {
+  return Factuality({
+    output: args.output.output,
+    input: args.output.input,
+  });
+};
 
 Eval("PhilScratchArea", {
   task: getOutput,
   data: initDataset({ project: "PhilScratchArea", dataset: "RAGDataset" }), // ignored
-  scores: [getFaithfulness, getContextRelevancy, getContextPrecision],
+  scores: [getFaithfulness, getContextRelevancy, getFactuality],
+  trialCount: 3
 });
