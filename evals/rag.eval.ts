@@ -1,82 +1,33 @@
-import { Faithfulness, ContextRelevancy, ContextRecall, ContextPrecision, Factuality } from "autoevals";
-import { Eval, initDataset } from "braintrust";
-import { OpenAI } from "openai";
-import { Pinecone } from "@pinecone-database/pinecone";
-import { VoyageAIClient } from "voyageai";
-import { wrapTraced, currentSpan } from "braintrust";
+import { Faithfulness, ContextRelevancy, ContextRecall, ContextPrecision, Factuality, LLMClassifierFromTemplate } from "autoevals";
+import { Eval, initDataset, initFunction } from "braintrust";
+import {  generateResponse } from "@/app/(preview)/api/chat/route";
+import { CoreMessage, ToolResultPart } from "ai";
 
-// Setup Pinecone, VoyageAI, and OpenAI clients
-const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY! });
-const index = pinecone.Index("braintrust-rag-bot");
+async function getOutput(query: CoreMessage[]): Promise<Output> {
+  const response = await generateResponse(query, "default_session_id");
+  response.consumeStream();
+  
+  const responseData = await response.response;
+  const context = responseData.messages
+    .filter(msg => msg.role === 'tool' && Array.isArray(msg.content))
+    .map(msg => {
+      if (Array.isArray(msg.content)) {
+        const toolResult = msg.content.find(
+          (content): content is ToolResultPart =>
+            content.type === 'tool-result' && content.toolName === 'getContext'
+        );
+        return toolResult?.result || '';
+      }
+      return '';
+    })
+    .join('\n');
 
-const voyage = new VoyageAIClient({
-  apiKey: process.env.VOYAGEAI_API_KEY,
-});
-const MODEL = "voyage-3";
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-interface Input {
-  content: string;
-  parts: object[];
-  role: string;
-}
-
-// Create embedding and retrieval functions
-const embedQuery = wrapTraced(async function embedQuery(query: Input[]) {
-  console.log("EMBEDDING QUERY", query[0].content);
-  const docs = await voyage.embed({ input: query[0].content, model: MODEL });
-  return docs.data?.[0]?.embedding ?? [];
-});
-
-export const getDocs = wrapTraced(
-  async function getDocs(query: Input[]) {
-    const embedding = await embedQuery(query);
-
-    const results = await index.query({
-      vector: embedding,
-      topK: 3,
-      includeMetadata: true,
-    });
-
-    const context =
-      results.matches?.map((match) => match.metadata?.content).join("\n\n") ??
-      "";
-    currentSpan().log({
-      metadata: {
-        context: context,
-      },
-    });
-    return context;
-  },
-  { type: "tool" }
-);
-
-async function getOutput(query: Input[]): Promise<Output> {
-  const context = await getDocs(query);
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      {
-        role: "system",
-        content: `
-      You are a helpful assistant that can answer questions about Braintrust using the Braintrust documentation.
-      `,
-      },
-      { role: "user", content: query[0].content },
-      {
-        role: "assistant",
-        content: `
-      CONTEXT: ${context}
-      `,
-      },
-    ],
-  });
-
-  const output: Output = {output: response.choices[0].message.content ?? "", context: context, input: query[0].content}
-  return output
+  const output: Output = {
+    output: await response.text,
+    context: context,
+    input: query[0].content as string
+  };
+  return output;
 }
 
 interface Output {
@@ -138,7 +89,6 @@ const getFactuality = (args: {
 
 Eval("PhilScratchArea", {
   task: getOutput,
-  data: initDataset({ project: "PhilScratchArea", dataset: "RAGDataset" }), // ignored
-  scores: [getFaithfulness, getContextRelevancy, getFactuality],
-  trialCount: 3
+  data: initDataset({ project: "PhilScratchArea", dataset: "SmallRAGDataset" }), // ignored
+  scores: [getFaithfulness, getContextRelevancy, getFactuality, initFunction({projectName: "PhilScratchArea", slug: "brand-check-6ba8"})],
 });
