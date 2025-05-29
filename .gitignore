@@ -34,3 +34,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+python_assets/uv.lock
+python_assets/__pycache__/evals.cpython-312.pyc
+python_assets/README.md
