@@ -6,11 +6,11 @@ import { cookies } from 'next/headers'
 // Uncomment below to use Braintrust's tracing features
 import { initLogger, wrapAISDKModel, traced, currentSpan, loadPrompt } from "braintrust";
 
-export async function getPrompt() {
+async function getPrompt() {
   const prompt = await loadPrompt({
     projectName: "PhilScratchArea",
     slug: "embedded-prompt",
-    version: "47f6c7177127c129"
+    version: "f5a3b1c842d81cc4"
   });
   
   const prompt_obj = prompt.build('')
