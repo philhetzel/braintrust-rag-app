@@ -13,7 +13,7 @@ async function getPrompt() {
   const prompt = await loadPrompt({
     projectName: "PhilScratchArea",
     slug: "embedded-prompt",
-    version: "c5c3b23f1310882d"
+    version: "74621f94c8c9631e"
   });
   
   const prompt_obj = prompt.build('')
