@@ -1,5 +1,5 @@
 import { openai } from "@ai-sdk/openai";
-import { streamText, ToolInvocation, CoreMessage, ToolResultPart } from "ai";
+import { streamText, ToolInvocation, CoreMessage, ToolResultPart, createDataStreamResponse } from "ai";
 import { getWeather, getFahrenheit } from "@/components/tools";
 import { getContext } from "@/components/retrieval";
 import { cookies } from 'next/headers'
@@ -81,12 +81,10 @@ export async function generateResponse(messages: Message[], sessionId: string) {
         model: model_name,
       },
     });
+    
 
     // Add span ID to the response data
-    (result as any).data = {
-      ...(result as any).data,
-      spanId: currentSpan().id
-    };
+
   },
     });
 
@@ -97,13 +95,21 @@ export async function POST(request: Request) {
   const cookieStore = cookies();
   const sessionId = cookieStore.get("session_id_PhilCookie")?.value || "default_session_id"
   
-  // traced starts a trace span when the POST endpoint is used
   return traced(async (span) => {
-      const { messages }: { messages: Message[] } = await request.json();
-      
-      const stream = await generateResponse(messages, sessionId)
-      return stream.toDataStreamResponse();
-    }
-    // Show the this span as a function and name the span POST /api/chat. Uncomment below
-    ,{ type: "function", name: "POST /api/chat" });
+    const { messages }: { messages: Message[] } = await request.json();
+    
+    return createDataStreamResponse({
+      execute: async (dataStream) => {
+        const stream = await generateResponse(messages, sessionId);
+        
+        // Annotate the stream with the span ID
+        dataStream.writeMessageAnnotation({
+          spanId: span.id
+        });
+
+        // Forward the stream
+        await stream.mergeIntoDataStream(dataStream);
+      }
+    });
+  }, { type: "function", name: "POST /api/chat" });
 }

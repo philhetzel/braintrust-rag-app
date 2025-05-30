@@ -7,17 +7,41 @@ import { motion } from "framer-motion";
 import { MasonryIcon, VercelIcon } from "@/components/icons";
 import Link from "next/link";
 import { useChat } from "@ai-sdk/react";
+import { useState } from "react";
 import { traced } from "braintrust";
 
-interface ChatData {
-  spanId?: string;
+interface MessageAnnotation {
+  spanId: string;
 }
 
 export default function Home() {
-  const { data, messages, handleSubmit, input, setInput, append } = useChat();
-  const typedData = data as unknown as ChatData;
-  console.log('Chat data:', data);
-  console.log('Messages:', messages);
+  const [feedbackData, setFeedbackData] = useState<Record<string, any>>({});
+  // const { messages, handleSubmit, input, setInput, append } = useChat({
+  //   onFinish: (message) => {
+  //     // Access the annotations from the finished message
+  //     if (message.role === 'assistant' && message.annotations) {
+  //       const annotations = message.annotations[0] as any;
+  //       console.log('Log Record ID:', annotations.spanId);
+  //     }
+  //   }
+  // });
+  const { messages, handleSubmit, input, setInput, append } = useChat({
+    api: '/api/chat',
+    onFinish: (message) => {
+      // Access the annotations from the finished message
+      if (message.role === 'assistant' && message.annotations) {
+        const annotations = message.annotations[0] as unknown as MessageAnnotation;
+        console.log('Log Record ID:', annotations.spanId);
+        
+        // Store the log record ID for later use with feedback
+        setFeedbackData(prev => ({
+          ...prev,
+          [message.id]: annotations.spanId
+        }));
+      }
+    },
+  });
+    
 
   const inputRef = useRef<HTMLInputElement>(null);
   const [messagesContainerRef, messagesEndRef] =
@@ -72,7 +96,7 @@ export default function Home() {
               role={message.role}
               content={message.content}
               toolInvocations={message.toolInvocations}
-              spanId={typedData?.spanId}
+              spanId={feedbackData[message.id]}
             ></Message>
           ))}
           <div ref={messagesEndRef} />
