@@ -9,9 +9,15 @@ import Link from "next/link";
 import { useChat } from "@ai-sdk/react";
 import { traced } from "braintrust";
 
+interface ChatData {
+  spanId?: string;
+}
 
 export default function Home() {
-  const { messages, handleSubmit, input, setInput, append } = useChat();
+  const { data, messages, handleSubmit, input, setInput, append } = useChat();
+  const typedData = data as unknown as ChatData;
+  console.log('Chat data:', data);
+  console.log('Messages:', messages);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const [messagesContainerRef, messagesEndRef] =
@@ -66,6 +72,7 @@ export default function Home() {
               role={message.role}
               content={message.content}
               toolInvocations={message.toolInvocations}
+              spanId={typedData?.spanId}
             ></Message>
           ))}
           <div ref={messagesEndRef} />
