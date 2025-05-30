@@ -52,7 +52,8 @@ const getContextRelevancy = (args: {
   return ContextRelevancy({
     output: args.output.output,
     context: args.output.context,
-    input: args.output.input
+    input: args.output.input,
+    model: "gpt-4o-mini",
   });
 };
 
@@ -64,6 +65,7 @@ const getContextPrecision = (args: {
     context: args.output.context,
     input: args.output.input,
     expected: "{{expected}}",
+    model: "gpt-4o-mini",
   });
 };
 
@@ -75,6 +77,8 @@ const getContextRecall = (args: {
     context: args.output.context,
     input: args.output.input,
     expected: "{{expected}}",
+    model: "gpt-4o-mini",
+
   });
 };
 
