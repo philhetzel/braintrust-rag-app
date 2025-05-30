@@ -16,15 +16,6 @@ interface MessageAnnotation {
 
 export default function Home() {
   const [feedbackData, setFeedbackData] = useState<Record<string, any>>({});
-  // const { messages, handleSubmit, input, setInput, append } = useChat({
-  //   onFinish: (message) => {
-  //     // Access the annotations from the finished message
-  //     if (message.role === 'assistant' && message.annotations) {
-  //       const annotations = message.annotations[0] as any;
-  //       console.log('Log Record ID:', annotations.spanId);
-  //     }
-  //   }
-  // });
   const { messages, handleSubmit, input, setInput, append } = useChat({
     api: '/api/chat',
     onFinish: (message) => {
