@@ -1,5 +1,5 @@
 import { Faithfulness, ContextRelevancy, ContextRecall, ContextPrecision, Factuality, LLMClassifierFromTemplate } from "autoevals";
-import { Eval, initDataset, initFunction } from "braintrust";
+import { Eval, BaseExperiment, initFunction } from "braintrust";
 import {  generateResponse } from "@/app/(preview)/api/chat/route";
 import { CoreMessage, ToolResultPart } from "ai";
 
@@ -89,6 +89,6 @@ const getFactuality = (args: {
 
 Eval("PhilScratchArea", {
   task: getOutput,
-  data: initDataset({ project: "PhilScratchArea", dataset: "SmallRAGDataset" }), // ignored
+  data: BaseExperiment<CoreMessage[], unknown, void>({name: 'main-1748522243'}), // ignored
   scores: [getFaithfulness, getContextRelevancy, getFactuality, initFunction({projectName: "PhilScratchArea", slug: "brand-check-6ba8"})],
 });
