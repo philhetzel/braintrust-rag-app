@@ -2,12 +2,12 @@ import { openai } from "@ai-sdk/openai";
 import { anthropic } from "@ai-sdk/anthropic";
 import { google } from "@ai-sdk/google";
 import { streamText, ToolInvocation, CoreMessage, ToolResultPart, createDataStreamResponse } from "ai";
-import { getWeather, getFahrenheit } from "@/components/tools";
 import { getContext } from "@/components/retrieval";
 import { cookies } from 'next/headers'
 // Uncomment below to use Braintrust's tracing features
 import { wrapAISDKModel, traced, currentSpan, loadPrompt } from "braintrust";
 import { logger as logger_component } from "@/components/logger";
+import { slackTool } from "@/components/slack";
 
 const logger = logger_component;
 
@@ -15,7 +15,7 @@ async function getPrompt() {
   const prompt = await loadPrompt({
     projectName: "PhilScratchArea",
     slug: "embedded-prompt",
-    version: "dcf02fa13deb2332"
+    version: "34137db1e71c4ccb"
   });
   
   const prompt_obj = prompt.build('')
@@ -33,7 +33,6 @@ const GOOGLE_MODELS = ["gemini-2.0-flash"]
 
 // Initialize Braintrust as the logging backend. Uncomment below
 // Any time this model is called, the input and output will be logged to Braintrust. Uncomment below
-
 
 export async function generateResponse(messages: Message[], sessionId: string) {
   const {prompt_message, model_name} = await getPrompt()
@@ -54,9 +53,8 @@ export async function generateResponse(messages: Message[], sessionId: string) {
     maxSteps: 5,
     // Register the exported tools to the LLM from @/components/tools
     tools: {
-      getWeather: getWeather,
-      getFahrenheit: getFahrenheit,
       getContext: getContext,
+      slack: slackTool,
     },
     // Enable experimental telemetry
     experimental_telemetry: {
