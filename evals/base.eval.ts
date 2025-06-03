@@ -198,6 +198,6 @@ const getForgetfulness = (args: {
 
 Eval("PhilScratchArea", {
   task: getOutput,
-  data: BaseExperiment<CoreMessage[], unknown, void>({name: 'main-1748522243'}), // ignored
+  data: initDataset("PhilScratchArea", {dataset: "MultiturnDataset"}),
   scores: [getEscalation, getForgetfulness],
 });
