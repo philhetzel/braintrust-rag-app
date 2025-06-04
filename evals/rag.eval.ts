@@ -53,7 +53,7 @@ const getContextRelevancy = (args: {
     output: args.output.output,
     context: args.output.context,
     input: args.output.input,
-    model: "gpt-4o-mini",
+    model: "claude-3-7-sonnet-latest",
   });
 };
 
@@ -88,6 +88,7 @@ const getFactuality = (args: {
   return Factuality({
     output: args.output.output,
     input: args.output.input,
+    model: "gpt-4o-mini",
   });
 };
 
