@@ -42,7 +42,8 @@ const getFaithfulness = (args: {
   return Faithfulness({
     output: args.output.output,
     context: args.output.context,
-    input: args.output.input
+    input: args.output.input,
+    model: "gemini-2.0-flash",
   });
 };
 
@@ -53,7 +54,7 @@ const getContextRelevancy = (args: {
     output: args.output.output,
     context: args.output.context,
     input: args.output.input,
-    model: "claude-3-7-sonnet-latest",
+    model: "gemini-2.0-flash",
   });
 };
 
@@ -65,7 +66,7 @@ const getContextPrecision = (args: {
     context: args.output.context,
     input: args.output.input,
     expected: "{{expected}}",
-    model: "gpt-4o-mini",
+    model: "gemini-2.0-flash",
   });
 };
 
@@ -77,7 +78,7 @@ const getContextRecall = (args: {
     context: args.output.context,
     input: args.output.input,
     expected: "{{expected}}",
-    model: "gpt-4o-mini",
+    model: "gemini-2.0-flash",
 
   });
 };
@@ -88,12 +89,13 @@ const getFactuality = (args: {
   return Factuality({
     output: args.output.output,
     input: args.output.input,
-    model: "gpt-4o-mini",
+    model: "gemini-2.0-flash",
   });
 };
 
 Eval("PhilScratchArea", {
   task: getOutput,
   data: BaseExperiment<CoreMessage[], unknown, void>({name: 'main-1748522243'}), // ignored
-  scores: [getFaithfulness, getContextRelevancy, getFactuality, initFunction({projectName: "PhilScratchArea", slug: "brand-check-6ba8"})],
+  scores: [getFaithfulness, getContextRelevancy, initFunction({projectName: "PhilScratchArea", slug: "brand-check-6ba8"})],
+  maxConcurrency: 5
 });
