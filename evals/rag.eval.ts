@@ -43,7 +43,7 @@ const getFaithfulness = (args: {
     output: args.output.output,
     context: args.output.context,
     input: args.output.input,
-    model: "gemini-2.0-flash",
+    model: "gpt-4o-mini",
   });
 };
 
@@ -54,7 +54,7 @@ const getContextRelevancy = (args: {
     output: args.output.output,
     context: args.output.context,
     input: args.output.input,
-    model: "gemini-2.0-flash",
+    model: "gpt-4o-mini",
   });
 };
 
