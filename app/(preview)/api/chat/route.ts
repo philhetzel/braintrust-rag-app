@@ -1,4 +1,6 @@
 import { openai } from "@ai-sdk/openai";
+import { anthropic } from "@ai-sdk/anthropic";
+import { google } from "@ai-sdk/google";
 import { streamText, ToolInvocation, CoreMessage, ToolResultPart, createDataStreamResponse } from "ai";
 import { getWeather, getFahrenheit } from "@/components/tools";
 import { getContext } from "@/components/retrieval";
@@ -25,7 +27,9 @@ async function getPrompt() {
 
 type Message = CoreMessage;
 
-
+const ANTHROPIC_MODELS = ["claude-sonnet-4-20250514", "claude-opus-4-20250514", "claude-3-7-sonnet-latest", "claude-3-5-haiku-latest", "claude-3-5-sonnet-latest"]
+const OPENAI_MODELS = ["gpt-4o-mini", "gpt-4o", "gpt-4.1", "gpt-3.5-turbo"]
+const GOOGLE_MODELS = ["gemini-2.0-flash"]
 
 // Initialize Braintrust as the logging backend. Uncomment below
 // Any time this model is called, the input and output will be logged to Braintrust. Uncomment below
@@ -33,10 +37,14 @@ type Message = CoreMessage;
 
 export async function generateResponse(messages: Message[], sessionId: string) {
   const {prompt_message, model_name} = await getPrompt()
-  const model = wrapAISDKModel(
-    openai(model_name)
-  // Uncomment below
-  );
+  let model: any;
+  if (ANTHROPIC_MODELS.includes(model_name)) {
+    model = wrapAISDKModel(anthropic(model_name));
+  } else if (OPENAI_MODELS.includes(model_name)) {
+    model = wrapAISDKModel(openai(model_name));
+  } else if (GOOGLE_MODELS.includes(model_name)) {
+    model = wrapAISDKModel(google(model_name));
+  }
   const stream = await streamText({
     // Our wrapped OpenAI model
     model: model,
