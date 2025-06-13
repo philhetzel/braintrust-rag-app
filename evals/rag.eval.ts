@@ -1,5 +1,5 @@
 import { Faithfulness, ContextRelevancy, ContextRecall, ContextPrecision, Factuality, LLMClassifierFromTemplate } from "autoevals";
-import { Eval, initDataset, initFunction } from "braintrust";
+import { Eval, BaseExperiment, initFunction } from "braintrust";
 import {  generateResponse } from "@/app/(preview)/api/chat/route";
 import { CoreMessage, ToolResultPart } from "ai";
 
@@ -42,7 +42,8 @@ const getFaithfulness = (args: {
   return Faithfulness({
     output: args.output.output,
     context: args.output.context,
-    input: args.output.input
+    input: args.output.input,
+    model: "gpt-4o-mini",
   });
 };
 
@@ -52,7 +53,8 @@ const getContextRelevancy = (args: {
   return ContextRelevancy({
     output: args.output.output,
     context: args.output.context,
-    input: args.output.input
+    input: args.output.input,
+    model: "gpt-4o-mini",
   });
 };
 
@@ -64,6 +66,7 @@ const getContextPrecision = (args: {
     context: args.output.context,
     input: args.output.input,
     expected: "{{expected}}",
+    model: "gemini-2.0-flash",
   });
 };
 
@@ -75,6 +78,8 @@ const getContextRecall = (args: {
     context: args.output.context,
     input: args.output.input,
     expected: "{{expected}}",
+    model: "gemini-2.0-flash",
+
   });
 };
 
@@ -84,11 +89,13 @@ const getFactuality = (args: {
   return Factuality({
     output: args.output.output,
     input: args.output.input,
+    model: "gemini-2.0-flash",
   });
 };
 
 Eval("PhilScratchArea", {
   task: getOutput,
-  data: initDataset({ project: "PhilScratchArea", dataset: "SmallRAGDataset" }), // ignored
-  scores: [getFaithfulness, getContextRelevancy, getFactuality, initFunction({projectName: "PhilScratchArea", slug: "brand-check-6ba8"})],
+  data: BaseExperiment<CoreMessage[], unknown, void>({name: 'main-1748522243'}), // ignored
+  scores: [getFaithfulness, getContextRelevancy, initFunction({projectName: "PhilScratchArea", slug: "brand-check-6ba8"})],
+  maxConcurrency: 5
 });

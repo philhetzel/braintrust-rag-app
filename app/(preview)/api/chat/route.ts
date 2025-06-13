@@ -15,7 +15,7 @@ async function getPrompt() {
   const prompt = await loadPrompt({
     projectName: "PhilScratchArea",
     slug: "embedded-prompt",
-    version: "dcf02fa13deb2332"
+    version: "68689237b5c449f6"
   });
   
   const prompt_obj = prompt.build('')
@@ -29,7 +29,7 @@ type Message = CoreMessage;
 
 const ANTHROPIC_MODELS = ["claude-sonnet-4-20250514", "claude-opus-4-20250514", "claude-3-7-sonnet-latest", "claude-3-5-haiku-latest", "claude-3-5-sonnet-latest"]
 const OPENAI_MODELS = ["gpt-4o-mini", "gpt-4o", "gpt-4.1", "gpt-3.5-turbo"]
-const GOOGLE_MODELS = ["gemini-2.0-flash"]
+const GOOGLE_MODELS = ["gemini-2.0-flash", "gemini-2.5-flash-preview-05-20"]
 
 // Initialize Braintrust as the logging backend. Uncomment below
 // Any time this model is called, the input and output will be logged to Braintrust. Uncomment below
