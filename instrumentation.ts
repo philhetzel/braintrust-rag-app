@@ -1,5 +1,5 @@
-import { registerOTel } from "@vercel/otel";
-
-registerOTel({
-  serviceName: 'PhilScratchArea'
-});
+import { registerOTel } from '@vercel/otel';
+ 
+export function register() {
+  registerOTel({ serviceName: 'PhilScratchArea' });
+}

@@ -5,15 +5,14 @@ import { streamText, ToolInvocation, CoreMessage, ToolResultPart, createDataStre
 import { getWeather, getFahrenheit } from "@/components/tools";
 import { getContext } from "@/components/retrieval";
 import { cookies } from 'next/headers'
-// Uncomment below to use Braintrust's tracing features
-import { wrapAISDKModel, traced, currentSpan, loadPrompt } from "braintrust";
+import { loadPrompt } from "braintrust";
 
 
 async function getPrompt() {
   const prompt = await loadPrompt({
     projectName: "PhilScratchArea",
     slug: "embedded-prompt",
-    version: "dcf02fa13deb2332"
+    version: "4630cfd241a3ade3"
   });
   
   const prompt_obj = prompt.build('')
@@ -76,20 +75,6 @@ export async function generateResponse(messages: Message[], sessionId: string) {
         return undefined;
       })
       .filter((result): result is string => result !== undefined);
-
-    currentSpan().log({
-      input: messages,
-      output: result.text,
-      metadata: {
-        user: "phetzel1",
-        session: sessionId,
-        context: contextMessages,
-        model: model_name,
-      },
-    });
-    
-
-    // Add span ID to the response data
 
   },
     });
