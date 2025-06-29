@@ -7,9 +7,7 @@ import { getContext } from "@/components/retrieval";
 import { cookies } from 'next/headers'
 // Uncomment below to use Braintrust's tracing features
 import { wrapAISDKModel, traced, currentSpan, loadPrompt } from "braintrust";
-import { logger as logger_component } from "@/components/logger";
 
-const logger = logger_component;
 
 async function getPrompt() {
   const prompt = await loadPrompt({
@@ -39,11 +37,11 @@ export async function generateResponse(messages: Message[], sessionId: string) {
   const {prompt_message, model_name} = await getPrompt()
   let model: any;
   if (ANTHROPIC_MODELS.includes(model_name)) {
-    model = wrapAISDKModel(anthropic(model_name));
+    model = anthropic(model_name);
   } else if (OPENAI_MODELS.includes(model_name)) {
-    model = wrapAISDKModel(openai(model_name));
+    model = openai(model_name);
   } else if (GOOGLE_MODELS.includes(model_name)) {
-    model = wrapAISDKModel(google(model_name));
+    model = google(model_name);
   }
   const stream = await streamText({
     // Our wrapped OpenAI model
@@ -103,7 +101,6 @@ export async function POST(request: Request) {
   const cookieStore = cookies();
   const sessionId = cookieStore.get("session_id_PhilCookie")?.value || "default_session_id"
   
-  return traced(async (span) => {
     const { messages }: { messages: Message[] } = await request.json();
     
     return createDataStreamResponse({
@@ -111,13 +108,9 @@ export async function POST(request: Request) {
         const stream = await generateResponse(messages, sessionId);
         
         // Annotate the stream with the span ID
-        dataStream.writeMessageAnnotation({
-          spanId: span.id
-        });
 
         // Forward the stream
         await stream.mergeIntoDataStream(dataStream);
       }
     });
-  }, { type: "function", name: "POST /api/chat" });
 }
